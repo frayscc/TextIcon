@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Studio</title>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <style>
+        :root {
+            --sf-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-subtle: rgba(255, 255, 255, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.75);
+            --glass-border-subtle: rgba(0, 0, 0, 0.07);
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --apple-blue: #0071e3;
+            --apple-blue-hover: #0077ed;
+            --squircle-xl: 32px;
+            --squircle-lg: 22px;
+            --squircle-md: 16px;
+            --squircle-sm: 12px;
+            --apple-shadow-card: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+            --apple-shadow-float: 0 24px 48px -12px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.03);
+            --spring: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 苹果标志性柔和动态网格渐变底色 */
+        body {
+            font-family: var(--sf-font);
+            background: 
+                radial-gradient(at 10% 15%, rgba(224, 237, 255, 0.7) 0px, transparent 50%),
+                radial-gradient(at 90% 10%, rgba(246, 235, 255, 0.65) 0px, transparent 45%),
+                radial-gradient(at 50% 90%, rgba(230, 245, 245, 0.6) 0px, transparent 55%),
+                #f5f5f7;
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px 24px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 顶部毛玻璃胶囊 Header */
+        header {
+            max-width: 1240px;
+            width: 100%;
+            margin-bottom: 36px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 28px;
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 9999px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .author-tag {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            opacity: 0.85;
+        }
+
+        /* 主体分栏工作台 */
+        .workspace {
+            max-width: 1240px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 460px 1fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        /* 苹果超透毛玻璃卡片 */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(36px) saturate(190%);
+            -webkit-backdrop-filter: blur(36px) saturate(190%);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--squircle-xl);
+            padding: 34px;
+            box-shadow: var(--apple-shadow-card);
+            position: relative;
+        }
+
+        .field-label {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .field-group {
+            margin-bottom: 28px;
+        }
+
+        /* 放大字号输入域 */
+        textarea, input[type="text"] {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--glass-border-subtle);
+            border-radius: var(--squircle-md);
+            padding: 14px 18px;
+            font-family: inherit;
+            font-size: 15.5px;
+            color: var(--text-primary);
+            outline: none;
+            transition: var(--spring);
+            backdrop-filter: blur(10px);
+            line-height: 1.6;
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            background: #ffffff;
+            border-color: var(--apple-blue);
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
+        }
+
+        /* 字体预览自定义选择器 (Custom Font Picker) */
+        .font-picker-wrapper {
+            position: relative;
+            user-select: none;
+        }
+
+        .font-picker-trigger {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--glass-border-subtle);
+            border-radius: var(--squircle-md);
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: var(--spring);
+        }
+
+        .font-picker-trigger:hover {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .font-trigger-current {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+
+        .font-main-name {
+            font-size: 15.5px;
+            font-weight: 600;
+        }
+
+        .font-sample-preview {
+            font-size: 14.5px;
+            color: var(--text-secondary);
+        }
+
+        .font-picker-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            width: 100%;
+            max-height: 320px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(28px) saturate(200%);
+            -webkit-backdrop-filter: blur(28px) saturate(200%);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--squircle-lg);
+            box-shadow: var(--apple-shadow-float);
+            padding: 8px;
+            z-index: 100;
+            display: none;
+            opacity: 0;
+            transform: translateY(-6px) scale(0.98);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .font-picker-dropdown.open {
+            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .font-group-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 8px 14px 4px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .font-option-item {
+            padding: 12px 16px;
+            border-radius: var(--squircle-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .font-option-item:hover {
+            background: rgba(0, 113, 227, 0.08);
+        }
+
+        .font-option-item.selected {
+            background: rgba(0, 113, 227, 0.12);
+        }
+
+        .font-option-item.selected .font-opt-title {
+            color: var(--apple-blue);
+            font-weight: 600;
+        }
+
+        .font-opt-title {
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+
+        .font-opt-glyph {
+            font-size: 18px;
+            color: #333336;
+        }
+
+        .font-sub-action {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding: 0 4px;
+        }
+
+        .link-btn {
+            background: none;
+            border: none;
+            color: var(--apple-blue);
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .link-btn:hover {
+            text-decoration: underline;
+        }
+
+        /* 苹果柔和色盘矩阵 */
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.45);
+            border-radius: var(--squircle-lg);
+            border: 1px solid var(--glass-border-subtle);
+        }
+
+        .swatch-pill {
+            aspect-ratio: 1;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            transition: var(--spring);
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+        }
+
+        .swatch-pill:hover {
+            transform: scale(1.15);
+        }
+
+        .swatch-pill.selected {
+            transform: scale(1.12);
+            box-shadow: 0 0 0 3px #ffffff, 0 0 0 5.5px var(--apple-blue);
+        }
+
+        /* 精工滑块 */
+        .apple-slider-wrap {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 7px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 9999px;
+            outline: none;
+            transition: var(--spring);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: grab;
+            border: 0.5px solid rgba(0,0,0,0.04);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.18);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:active {
+            cursor: grabbing;
+            transform: scale(1.08);
+        }
+
+        .val-badge {
+            font-size: 14px;
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid var(--glass-border-subtle);
+            padding: 5px 12px;
+            border-radius: 9999px;
+            min-width: 56px;
+            text-align: center;
+        }
+
+        /* 胶囊按钮体系 */
+        .btn-row {
+            display: flex;
+            gap: 14px;
+            margin-top: 32px;
+        }
+
+        .apple-btn-primary {
+            flex: 1;
+            background: var(--text-primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 9999px;
+            padding: 16px 24px;
+            font-size: 15.5px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            cursor: pointer;
+            transition: var(--spring);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        }
+
+        .apple-btn-primary:hover {
+            background: #000000;
+            transform: scale(1.015);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+        }
+
+        .apple-btn-primary:active {
+            transform: scale(0.975);
+        }
+
+        .apple-btn-subtle {
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border-subtle);
+            border-radius: 9999px;
+            padding: 16px 22px;
+            font-size: 15.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--spring);
+        }
+
+        .apple-btn-subtle:hover {
+            background: #ffffff;
+        }
+
+        .apple-btn-subtle:active {
+            transform: scale(0.975);
+        }
+
+        /* 右侧展台与陈列网格 */
+        .display-stage {
+            min-height: 660px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stage-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--glass-border-subtle);
+            margin-bottom: 26px;
+        }
+
+        .stage-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .download-pill-btn {
+            background: var(--apple-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 9999px;
+            padding: 10px 22px;
+            font-size: 14.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--spring);
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.28);
+        }
+
+        .download-pill-btn:hover {
+            background: var(--apple-blue-hover);
+            transform: scale(1.03);
+        }
+
+        .download-pill-btn:active {
+            transform: scale(0.97);
+        }
+
+        .gallery-shelf {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 24px;
+            align-content: start;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .empty-placeholder {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 440px;
+            color: var(--text-secondary);
+            font-size: 15px;
+            gap: 14px;
+        }
+
+        .empty-svg {
+            width: 48px;
+            height: 48px;
+            opacity: 0.35;
+        }
+
+        /* 苹果标志性图标卡片 (Icon Showcase) */
+        .icon-specimen {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--squircle-lg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            transition: var(--spring);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02);
+        }
+
+        .icon-specimen:hover {
+            transform: translateY(-5px) scale(1.02);
+            background: #ffffff;
+            box-shadow: var(--apple-shadow-float);
+        }
+
+        .icon-squircle-canvas {
+            width: 108px;
+            height: 108px;
+            border-radius: 24px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                inset 0 0 0 1px rgba(0, 0, 0, 0.04),
+                0 4px 16px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .icon-squircle-canvas img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .specimen-tag {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            max-width: 110px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (max-width: 960px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand-title">Icon Studio</div>
+    <div class="author-tag">Designed & Crafted by fray</div>
+</header>
+
+<main class="workspace">
+    <!-- 左侧控制面板 -->
+    <section class="glass-panel">
+        <div class="field-group">
+            <div class="field-label">
+                <span>文本字标</span>
+                <span style="font-weight:400; color:var(--text-secondary); font-size:13px;">每行生成一个</span>
+            </div>
+            <textarea id="words" rows="4">语
+数
+外
+物
+化
+历
+道</textarea>
+        </div>
+
+        <!-- 字体与版式选择器 -->
+        <div class="field-group">
+            <div class="field-label">字体与版式</div>
+            
+            <div class="font-picker-wrapper" id="font-picker">
+                <div class="font-picker-trigger" id="font-picker-trigger">
+                    <div class="font-trigger-current">
+                        <span class="font-main-name" id="current-font-name">微软雅黑 / PingFang SC</span>
+                        <span class="font-sample-preview" id="current-font-preview">永和九年，岁在癸丑</span>
+                    </div>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+
+                <div class="font-picker-dropdown" id="font-picker-dropdown">
+                    <div class="font-group-label">常用中文字体</div>
+                    <div class="font-option-item selected" data-value='"Microsoft YaHei", "PingFang SC", sans-serif' data-name="微软雅黑 / PingFang SC">
+                        <span class="font-opt-title" style="font-family: 'PingFang SC', sans-serif;">微软雅黑 / PingFang SC</span>
+                        <span class="font-opt-glyph" style="font-family: 'PingFang SC', sans-serif;">永</span>
+                    </div>
+                    <div class="font-option-item" data-value='"KaiTi", "STKaiti", serif' data-name="楷体 (KaiTi)">
+                        <span class="font-opt-title" style="font-family: 'KaiTi', 'STKaiti', serif;">楷体 (KaiTi)</span>
+                        <span class="font-opt-glyph" style="font-family: 'KaiTi', 'STKaiti', serif;">永</span>
+                    </div>
+                    <div class="font-option-item" data-value='"SimSun", "STSong", serif' data-name="宋体 (SimSun)">
+                        <span class="font-opt-title" style="font-family: 'SimSun', 'STSong', serif;">宋体 (SimSun)</span>
+                        <span class="font-opt-glyph" style="font-family: 'SimSun', 'STSong', serif;">永</span>
+                    </div>
+                    <div class="font-option-item" data-value='"FangSong", "STFangsong", serif' data-name="仿宋 (FangSong)">
+                        <span class="font-opt-title" style="font-family: 'FangSong', 'STFangsong', serif;">仿宋 (FangSong)</span>
+                        <span class="font-opt-glyph" style="font-family: 'FangSong', 'STFangsong', serif;">永</span>
+                    </div>
+                    <div class="font-option-item" data-value='"LiSu", serif' data-name="隶书 (LiSu)">
+                        <span class="font-opt-title" style="font-family: 'LiSu', serif;">隶书 (LiSu)</span>
+                        <span class="font-opt-glyph" style="font-family: 'LiSu', serif;">永</span>
+                    </div>
+                    
+                    <div id="chinese-font-section" style="display: none;">
+                        <div class="font-group-label" style="border-top: 1px solid var(--glass-border-subtle); margin-top: 6px; padding-top: 8px;">系统检测到的中文字体</div>
+                        <div id="chinese-font-slot"></div>
+                    </div>
+
+                    <div id="english-font-section" style="display: none;">
+                        <div class="font-group-label" style="border-top: 1px solid var(--glass-border-subtle); margin-top: 6px; padding-top: 8px;">其他系统字体 (西文)</div>
+                        <div id="english-font-slot"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="font-sub-action">
+                <button type="button" class="link-btn" id="scan-sys-fonts-btn">🔍 扫描本机全部字体 (中文字体优先置顶)</button>
+                <button type="button" class="link-btn" onclick="document.getElementById('font-file-input').click()">+ 导入 .ttf/.otf 字体文件</button>
+            </div>
+            <input type="file" id="font-file-input" accept=".ttf,.otf,.woff,.woff2" style="display:none;">
+        </div>
+
+        <!-- 调色灵感色盘 -->
+        <div class="field-group">
+            <div class="field-label">色彩基调</div>
+            <div class="color-palette" id="color-palette" data-selected-color="0,113,227">
+                <button type="button" class="swatch-pill selected" style="background-color: rgb(0, 113, 227);" data-original-color="0,113,227"></button>
+                <button type="button" class="swatch-pill" style="background-color: rgb(52, 199, 89);" data-original-color="52,199,89"></button>
+                <button type="button" class="swatch-pill" style="background-color: rgb(255, 59, 48);" data-original-color="255,59,48"></button>
+                <button type="button" class="swatch-pill" style="background-color: rgb(175, 82, 222);" data-original-color="175,82,222"></button>
+                <button type="button" class="swatch-pill" style="background-color: rgb(255, 149, 0);" data-original-color="255,149,0"></button>
+                <button type="button" class="swatch-pill" style="background-color: rgb(255, 204, 0);" data-original-color="255,204,0"></button>
+                <button type="button" class="swatch-pill" style="background-color: rgb(88, 86, 214);" data-original-color="88,86,214"></button>
+                <button type="button" class="swatch-pill" style="background-color: rgb(255, 45, 85);" data-original-color="255,45,85"></button>
+                <button type="button" class="swatch-pill" style="background-color: rgb(28, 28, 30);" data-original-color="28,28,30"></button>
+                <button type="button" class="swatch-pill" style="background-color: rgb(162, 132, 94);" data-original-color="162,132,94"></button>
+            </div>
+        </div>
+
+        <!-- 明度滑块 -->
+        <div class="field-group">
+            <div class="field-label">
+                <span>明度调节</span>
+                <span class="val-badge" id="brightness-val">50%</span>
+            </div>
+            <div class="apple-slider-wrap">
+                <input type="range" id="brightness-slider" min="0" max="100" value="50">
+            </div>
+        </div>
+
+        <!-- 饱和度滑块 -->
+        <div class="field-group">
+            <div class="field-label">
+                <span>饱和度调节</span>
+                <span class="val-badge" id="saturation-val">50%</span>
+            </div>
+            <div class="apple-slider-wrap">
+                <input type="range" id="saturation-slider" min="0" max="100" value="50">
+            </div>
+        </div>
+
+        <!-- 自定义 RGB -->
+        <div class="field-group">
+            <div class="field-label">指定色彩数值 (RGB)</div>
+            <input type="text" id="rgb-input" placeholder="例如: 0, 113, 227">
+        </div>
+
+        <!-- 底部主操作区 -->
+        <div class="btn-row">
+            <button type="button" class="apple-btn-primary" id="generate-btn">
+                <span>构建渲染图标</span>
+                <span style="opacity: 0.5;">⌘↵</span>
+            </button>
+            <button type="button" class="apple-btn-subtle" id="reset-btn">还原设置</button>
+        </div>
+    </section>
+
+    <!-- 右侧展台与画廊 -->
+    <section class="glass-panel display-stage">
+        <div class="stage-topbar">
+            <span class="stage-title">陈列展台</span>
+            <button type="button" class="download-pill-btn" id="download-zip-btn">下载全部图标包 (.ZIP)</button>
+        </div>
+
+        <div class="gallery-shelf" id="preview-container">
+            <div class="empty-placeholder">
+                <svg class="empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <rect x="3" y="3" width="18" height="18" rx="5" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <path d="M21 15l-5-5L5 21" />
+                </svg>
+                <span>在左侧完成设计并点击「构建渲染图标」</span>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    // 常见英文命名到正规中文命名的映射词典
+    const FONT_NAME_MAPPING = {
+        "Microsoft YaHei": "微软雅黑",
+        "Microsoft JhengHei": "微軟正黑體",
+        "PingFang SC": "苹方 (简)",
+        "PingFang TC": "蘋方 (繁)",
+        "PingFang HK": "蘋方 (港)",
+        "Hiragino Sans GB": "冬青黑体",
+        "Heiti SC": "黑体-简",
+        "Heiti TC": "黑體-繁",
+        "Songti SC": "宋体-简",
+        "Songti TC": "宋體-繁",
+        "Kaiti SC": "楷体-简",
+        "Kaiti TC": "楷體-繁",
+        "SimSun": "宋体",
+        "NSimSun": "新宋体",
+        "SimHei": "中易黑体",
+        "KaiTi": "楷体",
+        "FangSong": "仿宋",
+        "LiSu": "隶书",
+        "YouYuan": "幼圆",
+        "STKaiti": "华文楷体",
+        "STSong": "华文宋体",
+        "STFangsong": "华文仿宋",
+        "STHeiti": "华文黑体",
+        "STZhongsong": "华文中宋",
+        "STXingkai": "华文行楷",
+        "STXinwei": "华文新魏",
+        "STLiti": "华文隶书",
+        "DFKai-SB": "标楷体"
+    };
+
+    function rgbToHsl(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+        if (max === min) {
+            h = s = 0;
+        } else {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+        return [h * 360, s * 100, l * 100];
+    }
+
+    function hslToRgb(h, s, l) {
+        h /= 360; s /= 100; l /= 100;
+        let r, g, b;
+        if (s === 0) {
+            r = g = b = l;
+        } else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1 / 6) return p + (q - p) * 6 * t;
+                if (t < 1 / 2) return q;
+                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                return p;
+            };
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1 / 3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1 / 3);
+        }
+        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    }
+
+    // 标准 Windows 256x256 ICO 字节流生成
+    function pngBlobToIcoBuffer(pngBlob) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const pngBytes = new Uint8Array(reader.result);
+                const pngSize = pngBytes.length;
+
+                const icoBuffer = new Uint8Array(22 + pngSize);
+                const view = new DataView(icoBuffer.buffer);
+
+                view.setUint16(0, 0, true);
+                view.setUint16(2, 1, true);
+                view.setUint16(4, 1, true);
+
+                view.setUint8(6, 0); // 256px
+                view.setUint8(7, 0);
+                view.setUint8(8, 0);
+                view.setUint8(9, 0);
+                view.setUint16(10, 1, true);
+                view.setUint16(12, 32, true);
+                view.setUint32(14, pngSize, true);
+                view.setUint32(18, 22, true);
+
+                icoBuffer.set(pngBytes, 22);
+                resolve(icoBuffer);
+            };
+            reader.readAsArrayBuffer(pngBlob);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const colorPalette = document.getElementById('color-palette');
+        const brightnessSlider = document.getElementById('brightness-slider');
+        const brightnessVal = document.getElementById('brightness-val');
+        const saturationSlider = document.getElementById('saturation-slider');
+        const saturationVal = document.getElementById('saturation-val');
+        const rgbInput = document.getElementById('rgb-input');
+        const wordsTextarea = document.getElementById('words');
+        const generateBtn = document.getElementById('generate-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const previewContainer = document.getElementById('preview-container');
+        const downloadZipBtn = document.getElementById('download-zip-btn');
+        
+        // 字体选择交互组件
+        const fontPickerTrigger = document.getElementById('font-picker-trigger');
+        const fontPickerDropdown = document.getElementById('font-picker-dropdown');
+        const currentFontName = document.getElementById('current-font-name');
+        const currentFontPreview = document.getElementById('current-font-preview');
+        const chineseFontSection = document.getElementById('chinese-font-section');
+        const chineseFontSlot = document.getElementById('chinese-font-slot');
+        const englishFontSection = document.getElementById('english-font-section');
+        const englishFontSlot = document.getElementById('english-font-slot');
+        const scanSysFontsBtn = document.getElementById('scan-sys-fonts-btn');
+        const fontFileInput = document.getElementById('font-file-input');
+
+        let selectedFontValue = '"Microsoft YaHei", "PingFang SC", sans-serif';
+        const defaultWords = "语\n数\n外\n物\n化\n历\n道";
+        const defaultBaseColor = "0,113,227";
+        let generatedFiles = [];
+
+        // 展开与收起字体菜单
+        fontPickerTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fontPickerDropdown.classList.toggle('open');
+        });
+
+        document.addEventListener('click', () => {
+            fontPickerDropdown.classList.remove('open');
+        });
+
+        function bindFontOptionClick(item) {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.font-option-item').forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+                selectedFontValue = item.dataset.value;
+                currentFontName.textContent = item.dataset.name;
+                currentFontPreview.style.fontFamily = selectedFontValue;
+                fontPickerDropdown.classList.remove('open');
+            });
+        }
+
+        document.querySelectorAll('.font-option-item').forEach(bindFontOptionClick);
+
+        // 识别字体是否为中文字体
+        function isChineseFont(family) {
+            if (/[\u4e00-\u9fa5]/.test(family)) return true;
+            if (FONT_NAME_MAPPING[family]) return true;
+            const lower = family.toLowerCase();
+            return (
+                lower.includes('sc') || 
+                lower.includes('tc') || 
+                lower.includes('hk') || 
+                lower.includes('chinese') ||
+                lower.includes('song') || 
+                lower.includes('hei') || 
+                lower.includes('kai') || 
+                lower.includes('yuan') || 
+                lower.includes('fang') || 
+                lower.includes('ming')
+            );
+        }
+
+        // 扫描并对中文字体置顶
+        scanSysFontsBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!('queryLocalFonts' in window)) {
+                alert('当前浏览器环境暂未开放直接枚举系统字体的权限，建议点击右侧「导入字体文件」直接选入字体。');
+                return;
+            }
+
+            try {
+                const fonts = await window.queryLocalFonts();
+                if (!fonts || fonts.length === 0) return;
+
+                const families = Array.from(new Set(fonts.map(f => f.family)));
+                
+                const chineseFonts = [];
+                const englishFonts = [];
+
+                families.forEach(fam => {
+                    const mappedChineseName = FONT_NAME_MAPPING[fam];
+                    if (isChineseFont(fam)) {
+                        chineseFonts.push({
+                            original: fam,
+                            displayName: mappedChineseName ? `${mappedChineseName} (${fam})` : fam
+                        });
+                    } else {
+                        englishFonts.push({
+                            original: fam,
+                            displayName: fam
+                        });
+                    }
+                });
+
+                // 按拼音/字母排序
+                chineseFonts.sort((a, b) => a.displayName.localeCompare(b.displayName, 'zh-CN'));
+                englishFonts.sort((a, b) => a.displayName.localeCompare(b.displayName, 'en'));
+
+                chineseFontSlot.innerHTML = '';
+                englishFontSlot.innerHTML = '';
+
+                // 挂载中文字体（在前）
+                if (chineseFonts.length > 0) {
+                    chineseFontSection.style.display = 'block';
+                    chineseFonts.forEach(item => {
+                        const opt = document.createElement('div');
+                        opt.className = 'font-option-item';
+                        opt.dataset.value = `"${item.original}", sans-serif`;
+                        opt.dataset.name = item.displayName;
+                        opt.innerHTML = `
+                            <span class="font-opt-title" style="font-family: '${item.original}', sans-serif;">${item.displayName}</span>
+                            <span class="font-opt-glyph" style="font-family: '${item.original}', sans-serif;">永和</span>
+                        `;
+                        bindFontOptionClick(opt);
+                        chineseFontSlot.appendChild(opt);
+                    });
+                }
+
+                // 挂载西文字体（在后）
+                if (englishFonts.length > 0) {
+                    englishFontSection.style.display = 'block';
+                    englishFonts.forEach(item => {
+                        const opt = document.createElement('div');
+                        opt.className = 'font-option-item';
+                        opt.dataset.value = `"${item.original}", sans-serif`;
+                        opt.dataset.name = item.displayName;
+                        opt.innerHTML = `
+                            <span class="font-opt-title" style="font-family: '${item.original}', sans-serif;">${item.displayName}</span>
+                            <span class="font-opt-glyph" style="font-family: '${item.original}', sans-serif;">Ag</span>
+                        `;
+                        bindFontOptionClick(opt);
+                        englishFontSlot.appendChild(opt);
+                    });
+                }
+
+                fontPickerDropdown.classList.add('open');
+            } catch (err) {
+                alert('读取系统字体授权已取消。');
+            }
+        });
+
+        // 载入本地 .ttf / .otf 字体文件
+        fontFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const fontName = 'Custom_' + Date.now();
+            const arrayBuffer = await file.arrayBuffer();
+            const fontFace = new FontFace(fontName, arrayBuffer);
+
+            try {
+                await fontFace.load();
+                document.fonts.add(fontFace);
+
+                const cleanName = file.name.replace(/\.[^/.]+$/, "");
+                const opt = document.createElement('div');
+                opt.className = 'font-option-item selected';
+                opt.dataset.value = `"${fontName}", sans-serif`;
+                opt.dataset.name = cleanName;
+                opt.innerHTML = `
+                    <span class="font-opt-title" style="font-family: '${fontName}', sans-serif;">★ ${cleanName} (已导入)</span>
+                    <span class="font-opt-glyph" style="font-family: '${fontName}', sans-serif;">永和</span>
+                `;
+                
+                document.querySelectorAll('.font-option-item').forEach(el => el.classList.remove('selected'));
+                bindFontOptionClick(opt);
+                
+                chineseFontSection.style.display = 'block';
+                chineseFontSlot.prepend(opt);
+
+                selectedFontValue = opt.dataset.value;
+                currentFontName.textContent = cleanName;
+                currentFontPreview.style.fontFamily = selectedFontValue;
+            } catch (err) {
+                alert('字体加载失败，请检查文件格式。');
+            }
+        });
+
+        // 调色板渲染与状态同步
+        function updateUI() {
+            const b = parseInt(brightnessSlider.value);
+            const s = parseInt(saturationSlider.value);
+            brightnessVal.textContent = `${b}%`;
+            saturationVal.textContent = `${s}%`;
+
+            const currentBase = colorPalette.dataset.selectedColor;
+            document.querySelectorAll('.swatch-pill').forEach(box => {
+                const [r, g, bVal] = box.dataset.originalColor.split(',').map(Number);
+                const [h, sat, lit] = rgbToHsl(r, g, bVal);
+                const newS = Math.min(100, Math.max(0, sat * (s / 50)));
+                const newL = Math.min(100, Math.max(0, lit * (b / 50)));
+                const [nr, ng, nb] = hslToRgb(h, newS, newL);
+
+                box.style.backgroundColor = `rgb(${nr}, ${ng}, ${nb})`;
+                box.dataset.color = `${nr},${ng},${nb}`;
+
+                if (box.dataset.originalColor === currentBase) {
+                    box.classList.add('selected');
+                } else {
+                    box.classList.remove('selected');
+                }
+            });
+        }
+
+        function getFinalColorRgb() {
+            if (rgbInput.value.trim() !== '') {
+                const parts = rgbInput.value.trim().split(',').map(Number);
+                if (parts.length === 3 && parts.every(n => !isNaN(n) && n >= 0 && n <= 255)) {
+                    return `rgb(${parts[0]}, ${parts[1]}, ${parts[2]})`;
+                }
+            }
+            const currentBase = colorPalette.dataset.selectedColor;
+            const selectedBox = document.querySelector(`.swatch-pill[data-original-color="${currentBase}"]`);
+            if (selectedBox) {
+                return `rgb(${selectedBox.dataset.color})`;
+            }
+            return 'rgb(0, 113, 227)';
+        }
+
+        colorPalette.addEventListener('click', (e) => {
+            const box = e.target.closest('.swatch-pill');
+            if (box) {
+                rgbInput.value = '';
+                colorPalette.dataset.selectedColor = box.dataset.originalColor;
+                updateUI();
+            }
+        });
+
+        brightnessSlider.addEventListener('input', updateUI);
+        saturationSlider.addEventListener('input', updateUI);
+
+        rgbInput.addEventListener('input', () => {
+            colorPalette.dataset.selectedColor = '';
+            document.querySelectorAll('.swatch-pill').forEach(b => b.classList.remove('selected'));
+        });
+
+        resetBtn.addEventListener('click', () => {
+            wordsTextarea.value = defaultWords;
+            brightnessSlider.value = 50;
+            saturationSlider.value = 50;
+            rgbInput.value = '';
+            colorPalette.dataset.selectedColor = defaultBaseColor;
+            updateUI();
+        });
+
+        // 核心画布排布绘制
+        async function renderWordToBlob(word, color, fontFamily) {
+            const finalSize = 256;
+            const canvas = document.createElement('canvas');
+            canvas.width = finalSize;
+            canvas.height = finalSize;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const len = word.length;
+
+            if (len === 1) {
+                ctx.font = `bold 200px ${fontFamily}`;
+                ctx.fillText(word, finalSize / 2, finalSize / 2);
+            } else if (len === 2) {
+                const wideCanvas = document.createElement('canvas');
+                wideCanvas.width = finalSize * 2;
+                wideCanvas.height = finalSize;
+                const wCtx = wideCanvas.getContext('2d');
+                wCtx.fillStyle = color;
+                wCtx.textAlign = 'center';
+                wCtx.textBaseline = 'middle';
+                wCtx.font = `bold 200px ${fontFamily}`;
+                wCtx.fillText(word, wideCanvas.width / 2, wideCanvas.height / 2);
+                ctx.drawImage(wideCanvas, 0, 0, finalSize, finalSize);
+            } else if (len === 3) {
+                const wideCanvas = document.createElement('canvas');
+                wideCanvas.width = finalSize * 3;
+                wideCanvas.height = finalSize;
+                const wCtx = wideCanvas.getContext('2d');
+                wCtx.fillStyle = color;
+                wCtx.textAlign = 'center';
+                wCtx.textBaseline = 'middle';
+                wCtx.font = `bold 200px ${fontFamily}`;
+                wCtx.fillText(word, wideCanvas.width / 2, wideCanvas.height / 2);
+                ctx.drawImage(wideCanvas, 0, 0, finalSize, finalSize);
+            } else if (len === 4) {
+                ctx.font = `bold 100px ${fontFamily}`;
+                const offset = 50;
+                ctx.fillText(word[0], finalSize / 2 - offset, finalSize / 2 - offset);
+                ctx.fillText(word[1], finalSize / 2 + offset, finalSize / 2 - offset);
+                ctx.fillText(word[2], finalSize / 2 - offset, finalSize / 2 + offset);
+                ctx.fillText(word[3], finalSize / 2 + offset, finalSize / 2 + offset);
+            } else {
+                ctx.font = `bold 50px ${fontFamily}`;
+                ctx.fillText(word, finalSize / 2, finalSize / 2);
+            }
+
+            return new Promise((resolve) => {
+                canvas.toBlob((blob) => resolve({ blob, dataUrl: canvas.toDataURL('image/png') }), 'image/png');
+            });
+        }
+
+        // 生成渲染
+        generateBtn.addEventListener('click', async () => {
+            const rawWords = wordsTextarea.value.split('\n').map(w => w.trim()).filter(Boolean);
+            if (rawWords.length === 0) return;
+
+            const chosenColor = getFinalColorRgb();
+            previewContainer.innerHTML = '';
+            generatedFiles = [];
+
+            await document.fonts.ready;
+
+            for (const word of rawWords) {
+                const { blob, dataUrl } = await renderWordToBlob(word, chosenColor, selectedFontValue);
+                const icoBuffer = await pngBlobToIcoBuffer(blob);
+
+                generatedFiles.push({ name: `${word}.ico`, buffer: icoBuffer });
+
+                const specimen = document.createElement('div');
+                specimen.className = 'icon-specimen';
+                specimen.innerHTML = `
+                    <div class="icon-squircle-canvas">
+                        <img src="${dataUrl}">
+                    </div>
+                    <span class="specimen-tag">${word}.ico</span>
+                `;
+                previewContainer.appendChild(specimen);
+            }
+
+            downloadZipBtn.style.display = 'block';
+        });
+
+        // 打包下载 ZIP
+        downloadZipBtn.addEventListener('click', async () => {
+            if (generatedFiles.length === 0) return;
+            const zip = new JSZip();
+            generatedFiles.forEach(file => {
+                zip.file(file.name, file.buffer);
+            });
+
+            const content = await zip.generateAsync({ type: 'blob' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(content);
+            a.download = 'icons.zip';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        });
+
+        updateUI();
+    });
+</script>
+</body>
+</html>
